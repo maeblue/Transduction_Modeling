@@ -1,5 +1,9 @@
 go atlas simflags="-P 1"
 
+###########################
+### Section 1: Geometry ###
+###########################
+
 #Set a scale factor for all other 'spac' values to 1nm
 mesh  space.mult=1
 
@@ -31,18 +35,22 @@ electr  name=cathode  x.min=0.600  length=0.400 y.min=0.100 y.max=0.100
 
 
 #Here we get to dope the material regions (1 and 2 from above)
-doping     uniform reg=1  p.type conc=1.e18
-doping     uniform reg=2  n.type conc=1.e18
+#doping     uniform reg=2  p.type conc=1.e18
+
+
+###########################
+### Section 2: Modeling ###
+###########################
 
 #Now we save this structure as a .str file and plot it
-save outf=diode_basic.str
-tonyplot diode_basic.str
+save outf=InAs_sensor_basic.str
+tonyplot InAs_sensor_basic.str
 
 #But this plot doesn't tell us anything we didn't enter,
 #so we tell ATLAS which models to apply
 #Analytic for mobility, fldmob for velocity saturation
 #and WATT for transverse field model
-model   ANALYTIC  fldmob WATT  srh  auger  bgn 
+model   ANALYTIC  fldmob WATT  srh  auger  bgn
 
 #And add a work function to the Anode, for Ti=4.33 Au=5.2
 contact    name=anode workf=4.76
@@ -54,27 +62,22 @@ solve  init
 #the specified models
 method newton
 
-#Then we tell ATLAS to save the external properties to a log file
-log   outfile=diode_ex.log
+#Log the tests
+log outf=InAs_sensor.log
 
 #And we tell it what values to solve each model for within the mesh
-#Here we're solving for the conduction and valence bands, the
-#Shockley-Reed-Hall recombination, Auger recombination, and 
-#Carrier flow density vectors.
-output con.band val.band u.srh u.aug flowlines
+output con.band val.band u.srh u.aug flowlines qfn qfp
 
 #Now we re-save our structure file with all of these solutions in it
-save outf=diode_at_0V.str
-tonyplot diode_at_0V.str
+save outf=InAs_sensor-0uA.str
+tonyplot InAs_sensor-0uA.str
 
 #We run a 400uA current throught he electrodes and see what happens
-solve      IBASE=400e-6
+solve      IBASE=0 ISTEP=400e-6 IFINAL=800e-6 NAME=cathode outf=InAs_sensor-Isweep.str
 
-#Then we save the structure all over again (it will save values for the
-#vfinal above)
-save outf=diode_at_1V.str
-tonyplot diode_at_1V.str
-tonyplot diode_ex.log
+#Then we save the structure all over again 
+tonyplot InAs_sensor-Isweep.str
+tonyplot InAs_sensor.log
 
 #Go get a cup of tea, ATLAS
 quit
