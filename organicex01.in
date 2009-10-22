@@ -1,0 +1,81 @@
+go atlas simflags="-P 1"
+title Device Characteristics of MEH-PPV Polymer Light Emitting Diode 
+
+# Change the material thickness here
+set MEH_PPV_thick=0.0475
+set ITO_thick=0.05
+set Cathode_thick=0.05
+
+set total_thick=$MEH_PPV_thick + $Cathode_thick
+
+mesh   smooth=1 space.mult=1.0 
+x.mesh l= 0.0  spacing=1
+x.mesh l=10.0  spacing=1
+
+y.mesh l=-$ITO_thick    spacing=0.005
+y.mesh l=0.0            spacing=0.005
+y.mesh l=$MEH_PPV_thick     spacing=0.005
+y.mesh l=$total_thick spacing=0.005
+
+region num=1   material=PPV    y.max=$MEH_PPV_thick
+
+elec   num=1   name=anode  x.min=0 x.max=10.0 y.min=-$ITO_thick \
+                           y.max=0 material=ITO
+elec   num=2   name=cathode x.min=0 x.max=10.0 y.min=$MEH_PPV_thick \
+                            y.max=$total_thick material=Aluminum
+
+doping uniform region=1 conc=1e15 p.type
+
+# Set parameters for ITO
+material material=ITO real.index=1.83
+
+# Set parameters for MEH-PPV
+material region=1 material=PPV \
+         eg300=2.1  nc300=2.5e19 nv300=2.5e19 permittivity=3.0 \
+	  taun0=1e-9 taup0=1e-9 affinity=2.8 arichn=120  \
+	 rst.exciton=0.5 taus.exciton=1e-9 lds.exciton=0.01 \
+	 real.index=1.67 
+
+# Defining mobility parameters for MEH-PPV
+mobility region=1 material=PPV  deltaen.pfmob=0.48 deltaep.pfmob=0.48 betan.pfmob=3.7e-4 betap.pfmob=3.7e-4 mun=0.5e-5 mup=0.5e-4
+
+# Calcium (Cathode)
+contact name=cathode workfunc=2.9 
+
+# ITO (Anode)
+contact name=anode workfunc=4.7 
+
+models singlet langevin pfmob print
+
+solve init
+
+probe field max x=5 name="Electric Field"
+
+output u.langevin u.radiative con.band val.band 
+
+# Ramping Vanode to 10V to plot the I-V Characteristics 
+
+log outfile=organicex01.log
+solve vanode=0 vstep=0.05 vfinal=10 name=anode l.wave=0.59
+save outfile=organicex01_1.str
+
+# Extracting Current Density versus Voltage and Electric Field Data
+
+# OLED Surface Area = 10um * 1um = 10 um^2 = 1e-5 mm^2
+# Current Density (in mA/mm^2) = (Simulated current*1e3 mA) / (1e-5mm^2) = 1e8 * Simulated Current
+extract name="Currentdensity_vs_voltage" curve(v."anode", 1e8*i."anode") outfile="organicex01_1.dat"
+
+# Electric field (in V/m) = 1e2 * Electric field (in V/cm)
+extract name="Currentdensity_vs_Efield" curve(1e2*probe."Electric Field", 1e8*i."anode") outfile="organicex01_2.dat"
+
+# Plotting Current Density versus Voltage and Electric Field Curves
+tonyplot organicex01_1.dat -set organicex01_1.set
+tonyplot organicex01_2.dat -set organicex01_2.set
+
+# Plotting Luminescent Power Curve
+tonyplot organicex01.log -set organicex01_3.set
+
+# Plotting Langevin Recombination Contour Plot at 10V
+tonyplot organicex01_1.str -set organicex01_4.set
+
+quit
