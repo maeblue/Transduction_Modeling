@@ -4,37 +4,31 @@ go atlas simflags="-P 1"
 ### Section 1: Geometry ###
 ###########################
 
-#Set a scale factor for all other 'spac' values to 1nm
 mesh  space.mult=1
 
-#Define different mesh densities along the x axis 
+#Denser mesh in the center, beyond the contacts
 x.mesh loc=0.00 spac=0.05
 x.mesh loc=0.40 spac=0.02
 x.mesh loc=0.60 spac=0.02
 x.mesh loc=1.00 spac=0.05
 
-#Define different mesh densities along the y axis
-y.mesh loc=0.00 spac=0.001
+#Denser Mesh near the InAs layer
+y.mesh loc=0.00 spac=0.005
+y.mesh loc=0.10 spac=0.001
+y.mesh loc=0.30 spac=0.001
 y.mesh loc=0.40 spac=0.05
 y.mesh loc=0.90 spac=0.10
 
 #We have air on top of InAs on top of GaAs
-#I tried re-writing the regions to not cross xp boundaries
 region  num=1	material=air x.min=0 x.max=1 y.min=0.0 y.max=0.10
 region  num=2	material=InAs x.min=0.0 x.max=1.00 y.min=0.10 y.max=0.20
 region	num=3	material=GaAs x.min=0.0 x.max=1.00 y.min=0.20 y.max=0.90
 
-#Define electrode names and positions
-#The first line places an electrode named 'anode' at the top
-#of the structure (y=0), with a starting location and length
+#Anode on the left side, cathode on the right
 electr  name=anode  x.min=0  length=0.4 y.min=0.100 y.max=0.100
 electr  name=cathode  x.min=0.600  length=0.400 y.min=0.100 y.max=0.100
 
-#The second electr line defines an electrode named 'cathode' and 
-#places it across the whole of the bottom of the structure
-
-
-#Here we get to dope the material regions (1 and 2 from above)
+#No doping yet
 #doping     uniform reg=2  p.type conc=1.e18
 
 
