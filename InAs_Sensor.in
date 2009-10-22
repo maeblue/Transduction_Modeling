@@ -25,8 +25,8 @@ region  num=2	material=InAs x.min=0.0 x.max=1.00 y.min=0.10 y.max=0.20
 region	num=3	material=GaAs x.min=0.0 x.max=1.00 y.min=0.20 y.max=0.90
 
 #Anode on the left side, cathode on the right
-electr  name=anode  x.min=0  length=0.4 y.min=0.100 y.max=0.100
-electr  name=cathode  x.min=0.600  length=0.400 y.min=0.100 y.max=0.100
+electr  name=anode  x.min=0  length=0.3 y.min=0.100 y.max=0.100
+electr  name=cathode  x.min=0.700  length=0.3 y.min=0.100 y.max=0.100
 
 #No doping yet
 #doping     uniform reg=2  p.type conc=1.e18
