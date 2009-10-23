@@ -19,6 +19,14 @@ y.mesh loc=0.30 spac=0.001
 y.mesh loc=0.40 spac=0.05
 y.mesh loc=0.90 spac=0.10
 
+############################
+### Section 2: Materials ###
+############################
+
+#InAs has an electron affinity of 4.9
+MATERIAL NAME=Air	AFFINITY=4.7
+MATERIAL NAME=GaAs	AFFINITY=4.9
+
 #We have air on top of InAs on top of GaAs
 region  num=1	material=air x.min=0 x.max=1 y.min=0.0 y.max=0.10
 region  num=2	material=InAs x.min=0.0 x.max=1.00 y.min=0.10 y.max=0.20
