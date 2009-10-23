@@ -23,9 +23,6 @@ y.mesh loc=0.90 spac=0.10
 ### Section 2: Materials ###
 ############################
 
-#InAs has an electron affinity of 4.9
-MATERIAL NAME=Air	AFFINITY=4.7
-MATERIAL NAME=GaAs	AFFINITY=4.9
 
 #We have air on top of InAs on top of GaAs
 region  num=1	material=air x.min=0 x.max=1 y.min=0.0 y.max=0.10
@@ -39,6 +36,11 @@ electr  name=cathode  x.min=0.700  length=0.3 y.min=0.100 y.max=0.100
 #No doping yet
 #doping     uniform reg=2  p.type conc=1.e18
 
+
+#InAs has an electron affinity of 4.9
+# Air apparently has a bandgap of 9
+#MATERIAL NAME=Air	AFFINITY=5.1
+#MATERIAL NAME=GaAs	AFFINITY=4.5
 
 ###########################
 ### Section 2: Modeling ###
@@ -74,12 +76,12 @@ output con.band val.band u.srh u.aug flowlines qfn qfp
 
 #Now we re-save our structure file with all of these solutions in it
 save outf=InAs_sensor-0uA.str
-tonyplot InAs_sensor-0uA.str
+tonyplot InAs_sensor-0uA.str -set band_structure.set
 
 solve	init
 
 #We run a 400uA current throught he electrodes and see what happens
-solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=InAs_sensor-Vsweep.str
+solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=InAs_sensor-Vsweep.str master
 
 tonyplot InAs_sensor-Vsweep.str
 tonyplot InAs_sensor.log
