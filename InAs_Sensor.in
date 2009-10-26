@@ -43,13 +43,14 @@ electr  name=cathode  x.min=0.700  length=0.3 y.min=0.100 y.max=0.100
 #MATERIAL NAME=Air	AFFINITY=5.1
 #MATERIAL NAME=GaAs	AFFINITY=4.5
 
+#Save the design
+save outf=InAs_sensor_basic.str
+# tonyplot InAs_sensor_basic.str
+
 ###########################
 ### Section 3: Modeling ###
 ###########################
 
-#Now we save this structure as a .str file and plot it
-save outf=InAs_sensor_basic.str
-tonyplot InAs_sensor_basic.str
 
 #But this plot doesn't tell us anything we didn't enter,
 #so we tell ATLAS which models to apply
