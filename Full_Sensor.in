@@ -39,11 +39,11 @@ ELIMINATE	ROWS	X.MIN=3000	X.MAX=5000	Y.MIN=-2	Y.MAX=5
 #We have air on top of InAs on top of GaAs
 region	num=1	material=air	x.min=0	x.max=5000	y.min=-2.0	y.max=0.00
 region	num=2	material=InAs	x.min=0	x.max=5000	y.min=0.00	y.max=0.10
-region	num=3	material=GaAs	x.min=0	x.max=5000	y.min=1.0	y.max=5.00
+region	num=3	material=GaAs	x.min=0	x.max=5000	y.min=0.10	y.max=5.00
 
 #Anode on the left side, cathode on the right
-electr  name=anode		x.min=500	length=500	y.min=0.00	y.max=0.00
-electr  name=cathode	x.min=4000	length=500	y.min=0.00	y.max=0.00
+electr  name=anode		x.min=500	x.max=1000	y.min=0.00	y.max=0.00
+electr  name=cathode	x.min=4000	x.max=4500	y.min=0.00	y.max=0.00
 
 #No doping yet
 #doping     uniform reg=2  p.type conc=1.e18
