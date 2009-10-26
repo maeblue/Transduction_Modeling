@@ -1,0 +1,99 @@
+#This file is designed to simulate full-scale sensor behavior
+
+go atlas simflags="-P 1"
+
+###########################
+### Section 1: Geometry ###
+###########################
+
+
+# Here we define a sensor with contacts spaced 500 microns apart
+# x-spacing is denser near contacts
+mesh  space.mult=1
+
+#Denser mesh near contacts
+x.mesh	loc=0	spac=50
+x.mesh	loc=500	spac=20
+x.mesh	loc=1000	spac=50
+x.mesh	loc=4000	spac=20
+x.mesh	loc=4500	spac=50
+x.mesh	loc=5000	spac=50
+
+#Denser Mesh near the surface (y=0) through the thin film (~100nm)
+y.mesh	loc=-0.20	spac=0.020
+y.mesh	loc=0.00	spac=0.001
+y.mesh	loc=0.20	spac=0.005
+y.mesh	loc=0.30	spac=0.05
+y.mesh	loc=1.00	spac=0.10
+y.mesh	loc=5.00	spac=0.50
+
+############################
+### Section 2: Materials ###
+############################
+
+#We have air on top of InAs on top of GaAs
+region	num=1	material=air	x.min=0	x.max=5000	y.min=-2.0	y.max=0.00
+region	num=2	material=InAs	x.min=0	x.max=5000	y.min=0.00	y.max=0.10
+region	num=3	material=GaAs	x.min=0	x.max=5000	y.min=1.0	y.max=5.00
+
+#Anode on the left side, cathode on the right
+electr  name=anode		x.min=500	length=500	y.min=0.00	y.max=0.00
+electr  name=cathode	x.min=4000	length=500	y.min=0.00	y.max=0.00
+
+#No doping yet
+#doping     uniform reg=2  p.type conc=1.e18
+
+#InAs has an electron affinity of 4.9
+# Air apparently has a bandgap of 9
+#MATERIAL NAME=Air	AFFINITY=5.1
+#MATERIAL NAME=GaAs	AFFINITY=4.5
+
+###########################
+### Section 3: Modeling ###
+###########################
+
+#Now we save this structure as a .str file and plot it
+save outf=Full_sensor_basic.str
+tonyplot Full_sensor_basic.str
+
+#But this plot doesn't tell us anything we didn't enter,
+#so we tell ATLAS which models to apply
+#Analytic for mobility, fldmob for velocity saturation
+#and WATT for transverse field model
+#model  conmob ANALYTIC  fldmob WATT  srh  auger  bgn
+
+#Include Klaassen Band-to-Band transitions (direct & indirect)
+model  BOLTZMANN conmob  fldmob  srh  auger  bgn BBT.KL
+
+
+#And add a work function to the Anode, for Ti=4.33 Au=5.2
+#contact    name=anode workf=4.76
+
+#Start with the gummel method to get good initial guess, then switch to
+#newton if it doesn't converge
+method gummel newton
+
+#And then we solve for the initial conditions
+solve  init
+
+#Log the tests
+log outf=Full_sensor.log
+
+#And we tell it what values to solve each model for within the mesh
+output con.band val.band u.srh u.aug flowlines qfn qfp
+
+#Now we re-save our structure file with all of these solutions in it
+save outf=Full_sensor-0uA.str
+tonyplot Full_sensor-0uA.str -set band_structure.set
+
+solve	init
+
+#We run a 400uA current throught he electrodes and see what happens
+solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=Full_sensor-Vsweep.str master
+
+tonyplot Full_sensor-Vsweep.str
+tonyplot Full_sensor.log
+
+quit
+
+

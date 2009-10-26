@@ -1,0 +1,93 @@
+go atlas simflags="-P 1"
+
+###########################
+### Section 1: Geometry ###
+###########################
+
+mesh  space.mult=1
+
+#Denser mesh in the center, beyond the contacts
+x.mesh loc=0.00 spac=0.05
+x.mesh loc=0.40 spac=0.02
+x.mesh loc=0.60 spac=0.02
+x.mesh loc=1.00 spac=0.05
+
+#Denser Mesh near the InAs layer
+y.mesh loc=0.00 spac=0.005
+y.mesh loc=0.10 spac=0.001
+y.mesh loc=0.30 spac=0.001
+y.mesh loc=0.40 spac=0.05
+y.mesh loc=0.90 spac=0.10
+
+############################
+### Section 2: Materials ###
+############################
+
+
+#We have air on top of InAs on top of GaAs
+region  num=1	material=air x.min=0 x.max=1 y.min=0.0 y.max=0.10
+region  num=2	material=InAs x.min=0.0 x.max=1.00 y.min=0.10 y.max=0.20
+region	num=3	material=GaAs x.min=0.0 x.max=1.00 y.min=0.20 y.max=0.90
+
+#Anode on the left side, cathode on the right
+electr  name=anode  x.min=0  length=0.3 y.min=0.100 y.max=0.100
+electr  name=cathode  x.min=0.700  length=0.3 y.min=0.100 y.max=0.100
+
+#No doping yet
+#doping     uniform reg=2  p.type conc=1.e18
+
+
+#InAs has an electron affinity of 4.9
+# Air apparently has a bandgap of 9
+#MATERIAL NAME=Air	AFFINITY=5.1
+#MATERIAL NAME=GaAs	AFFINITY=4.5
+
+###########################
+### Section 3: Modeling ###
+###########################
+
+#Now we save this structure as a .str file and plot it
+save outf=InAs_sensor_basic.str
+tonyplot InAs_sensor_basic.str
+
+#But this plot doesn't tell us anything we didn't enter,
+#so we tell ATLAS which models to apply
+#Analytic for mobility, fldmob for velocity saturation
+#and WATT for transverse field model
+#model  conmob ANALYTIC  fldmob WATT  srh  auger  bgn
+
+#Include Klaassen Band-to-Band transitions (direct & indirect)
+model  BOLTZMANN conmob  fldmob  srh  auger  bgn BBT.KL
+
+
+#And add a work function to the Anode, for Ti=4.33 Au=5.2
+#contact    name=anode workf=4.76
+
+#Start with the gummel method to get good initial guess, then switch to
+#newton if it doesn't converge
+method gummel newton
+
+#And then we solve for the initial conditions
+solve  init
+
+#Log the tests
+log outf=InAs_sensor.log
+
+#And we tell it what values to solve each model for within the mesh
+output con.band val.band u.srh u.aug flowlines qfn qfp
+
+#Now we re-save our structure file with all of these solutions in it
+save outf=InAs_sensor-0uA.str
+tonyplot InAs_sensor-0uA.str -set band_structure.set
+
+solve	init
+
+#We run a 400uA current throught he electrodes and see what happens
+solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=InAs_sensor-Vsweep.str master
+
+tonyplot InAs_sensor-Vsweep.str
+tonyplot InAs_sensor.log
+
+quit
+
+

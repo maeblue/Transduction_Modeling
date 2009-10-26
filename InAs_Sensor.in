@@ -43,7 +43,7 @@ electr  name=cathode  x.min=0.700  length=0.3 y.min=0.100 y.max=0.100
 #MATERIAL NAME=GaAs	AFFINITY=4.5
 
 ###########################
-### Section 2: Modeling ###
+### Section 3: Modeling ###
 ###########################
 
 #Now we save this structure as a .str file and plot it
@@ -55,15 +55,17 @@ tonyplot InAs_sensor_basic.str
 #Analytic for mobility, fldmob for velocity saturation
 #and WATT for transverse field model
 #model  conmob ANALYTIC  fldmob WATT  srh  auger  bgn
-model  conmob  fldmob  srh  auger  bgn
+
+#Include Klaassen Band-to-Band transitions (direct & indirect)
+model  BOLTZMANN conmob  fldmob  srh  auger  bgn BBT.KL
 
 
 #And add a work function to the Anode, for Ti=4.33 Au=5.2
 #contact    name=anode workf=4.76
 
-#And tell it which numerical methods to use for solving 
-# the specified models (trap?)
-method newton
+#Start with the gummel method to get good initial guess, then switch to
+#newton if it doesn't converge
+method gummel newton
 
 #And then we solve for the initial conditions
 solve  init

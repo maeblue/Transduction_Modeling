@@ -36,7 +36,7 @@ show junctions off
 show electrodes off
 show threed off
 draw 1
-cutline from 0.462827, -0.036 to 0.462827, 0.9 ; select 1
+cutline from 0.5, 0 to 0.5, 0.9 ; select 1
 region param -101
 # key positions
 key contours 1 at 3
