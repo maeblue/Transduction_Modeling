@@ -1,23 +1,17 @@
-#This file is designed to simulate full-scale sensor behavior
+#This file is designed to simulate the InAs interfaces
 
 go atlas simflags="-P 1"
 
-###########################
-### Section 1: Geometry ###
-###########################
+##########################################
+### Section 1: Structure Specification ###
+##########################################
 
-
-# Here we define a sensor with contacts spaced 500 microns apart
-# x-spacing is denser near contacts
+# Here we define a 1 micron sensor region (big enough for "molecule" modeling)
 mesh  space.mult=1
 
 #Denser mesh near contacts
-x.mesh	loc=0		spac=50
-x.mesh	loc=500		spac=25
-x.mesh	loc=1000	spac=50
-x.mesh	loc=4000	spac=25
-x.mesh	loc=4500	spac=50
-x.mesh	loc=5000	spac=50
+x.mesh	loc=0		spac=0.02
+x.mesh	loc=1		spac=0.02
 
 #Denser Mesh near the surface (y=0) through the thin film (~100nm)
 y.mesh	loc=-0.20	spac=0.05
@@ -27,39 +21,23 @@ y.mesh	loc=0.15	spac=0.005
 y.mesh	loc=0.25	spac=0.05
 y.mesh	loc=0.30	spac=0.10
 y.mesh	loc=0.50	spac=0.50
-y.mesh	loc=5.00	spac=0.50
 
-#remove rows outside of central region
-ELIMINATE	ROWS	X.MIN=0		X.MAX=2000	Y.MIN=-2	Y.MAX=5
-ELIMINATE	ROWS	X.MIN=3000	X.MAX=5000	Y.MIN=-2	Y.MAX=5
-
-#Remove columns outside of contacts and central region
-ELIMINATE	COLUMNS	X.MIN=0		X.MAX=500	Y.MIN=-2	Y.MAX=5
-ELIMINATE	COLUMNS	X.MIN=1000	X.MAX=2000	Y.MIN=-2	Y.MAX=5
-ELIMINATE	COLUMNS	X.MIN=3000	X.MAX=4000	Y.MIN=-2	Y.MAX=5
-ELIMINATE	COLUMNS	X.MIN=4500	X.MAX=5000	Y.MIN=-2	Y.MAX=5
-
-
-############################
-### Section 2: Materials ###
-############################
+##################################
+### Section 2: Material Models ###
+##################################
 
 #We have air on top of InAs on top of GaAs
-region	num=1	material=air	x.min=0	x.max=5000	y.min=-2.0	y.max=0.00
-region	num=2	material=InAs	x.min=0	x.max=5000	y.min=0.00	y.max=0.10
-region	num=3	material=GaAs	x.min=0	x.max=5000	y.min=0.10	y.max=5.00
+region	num=1	material=air	x.min=0	x.max=1	y.min=-2.0	y.max=0.00
+region	num=2	material=InAs	x.min=0	x.max=1	y.min=0.00	y.max=0.10
+region	num=3	material=GaAs	x.min=0	x.max=1	y.min=0.10	y.max=0.50
 
 #Anode on the left side, cathode on the right
-electr  name=anode		x.min=500	x.max=1000	y.min=-0.01	y.max=0.00
-electr  name=cathode	x.min=4000	x.max=4500	y.min=-0.01	y.max=0.00
+electr  name=anode		x.min=0.0	x.max=0.1	y.min=-0.01	y.max=0.00
+electr  name=cathode	x.min=0.9	x.max=1.0	y.min=-0.01	y.max=0.00
 
-#No doping yet
-#doping     uniform reg=2  p.type conc=1.e18
-
-#InAs has an electron affinity of 4.9
-# Air apparently has a bandgap of 9
-#MATERIAL NAME=Air	AFFINITY=5.1
-#MATERIAL NAME=GaAs	AFFINITY=4.5
+#Gaussian doping to simulate accumulation region near InAs surface
+# (dir=y replaces the x.left and x.right parameters)
+doping gaus peak=0.005.0 char=0.0000001 conc=2e18 n.type dir=y
 
 #Save the basic design
 save outf=full_sensor_structure.str
@@ -69,21 +47,36 @@ save outf=full_sensor_structure.str
 ### Section 3: Modeling ###
 ###########################
 
-#But this plot doesn't tell us anything we didn't enter,
-#so we tell ATLAS which models to apply
-#Analytic for mobility, fldmob for velocity saturation
-#and WATT for transverse field model
-#model  conmob ANALYTIC  fldmob WATT  srh  auger  bgn
+# And add a work function to the Anode & Cathode, for Ti=4.33 Au=5.2
+# could add "CURRENT" keyword, if we want current-controlled stuff
+contact	name=anode	workf=4.76
+contact	name=cathode	workf=4.76
 
-#Include Klaassen Band-to-Band transitions (direct & indirect)
+# Add mobilities for InAs and GaAs regions (according to our data)
+# Don't have good data yet for our InAs
+MATERIAL	MATERIAL=InAs	MUN=1e5
+
+# InAs has an electron affinity of 4.9
+# Air apparently has a bandgap of 9
+# MATERIAL NAME=Air	AFFINITY=5.1
+# MATERIAL NAME=GaAs	AFFINITY=4.5
+
+# We could specify fixed charge and surface recomb. vel. here
+# INTERFACE QF=3e10 X.MIN=1.0 X.MAX=2 Y.MIN=0.0 Y.MAX=0.5
+
+# Analytic for mobility, fldmob for velocity saturation
+# and WATT for transverse field model
+# model  conmob ANALYTIC  fldmob WATT  srh  auger  bgn
+# That didn't run, so I took out some things
+# Include Klaassen Band-to-Band transitions (direct & indirect)
 model  BOLTZMANN conmob  fldmob  srh  auger  bgn BBT.KL
 
-
-#And add a work function to the Anode, for Ti=4.33 Au=5.2
-#contact    name=anode workf=4.76
+#############################################
+### Section 3: Numerical Method Selection ###
+#############################################
 
 #Start with the gummel method to get good initial guess, then switch to
-#newton if it doesn't converge
+#have to use newton or block for current controlled stuff
 method gummel newton
 
 #And we tell it what values to solve each model for within the mesh
