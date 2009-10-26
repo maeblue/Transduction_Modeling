@@ -61,8 +61,8 @@ electr  name=cathode	x.min=4000	x.max=4500	y.min=-0.01	y.max=0.00
 #MATERIAL NAME=GaAs	AFFINITY=4.5
 
 #Save the basic design
-save outf=InAs_sensor_basic.str
-# tonyplot InAs_sensor_basic.str
+save outf=full_sensor_structure.str
+# tonyplot full_sensor_structure.str
 
 ###########################
 ### Section 3: Modeling ###
@@ -85,25 +85,24 @@ model  BOLTZMANN conmob  fldmob  srh  auger  bgn BBT.KL
 #newton if it doesn't converge
 method gummel newton
 
-#And then we solve for the initial conditions
-solve  init
+#And we tell it what values to solve each model for within the mesh
+output con.band val.band u.srh u.aug flowlines qfn qfp
 
 #Log the tests
 log outf=full_sensor.log
 
-#And we tell it what values to solve each model for within the mesh
-output con.band val.band u.srh u.aug flowlines qfn qfp
+#And then we solve for the initial conditions
+solve  init
 
 #Now we re-save our structure file with all of these solutions in it
-save outf=full_sensor-0uA.str
-tonyplot full_sensor-0uA.str -set band_structure.set
+save outf=full_sensor.str
+tonyplot full_sensor.str -set band_structure.set
 
-solve	init
 
 #We run a 400uA current throught he electrodes and see what happens
-solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=full_sensor-Vsweep.str master
+solve	VANODE=0 VSTEP=1 IFINAL=5 NAME=anode outf=full_sensor-vsweep.str master
 
-tonyplot full_sensor-Vsweep.str
+tonyplot full_sensor-vsweep.str
 tonyplot full_sensor.log
 
 quit
