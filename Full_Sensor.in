@@ -12,20 +12,25 @@ go atlas simflags="-P 1"
 mesh  space.mult=1
 
 #Denser mesh near contacts
-x.mesh	loc=0	spac=50
-x.mesh	loc=500	spac=20
+x.mesh	loc=0		spac=50
+x.mesh	loc=500		spac=25
 x.mesh	loc=1000	spac=50
-x.mesh	loc=4000	spac=20
+x.mesh	loc=4000	spac=25
 x.mesh	loc=4500	spac=50
 x.mesh	loc=5000	spac=50
 
 #Denser Mesh near the surface (y=0) through the thin film (~100nm)
-y.mesh	loc=-0.20	spac=0.020
+y.mesh	loc=-0.20	spac=0.05
 y.mesh	loc=0.00	spac=0.001
-y.mesh	loc=0.20	spac=0.005
-y.mesh	loc=0.30	spac=0.05
-y.mesh	loc=1.00	spac=0.10
+y.mesh	loc=0.15	spac=0.005
+y.mesh	loc=0.25	spac=0.05
+y.mesh	loc=0.30	spac=0.10
+y.mesh	loc=0.50	spac=0.50
 y.mesh	loc=5.00	spac=0.50
+
+#remove rows outside of central region
+ELIMINATE	ROWS	X.MIN=0		X.MAX=2000	Y.MIN=-2	Y.MAX=5
+ELIMINATE	ROWS	X.MIN=3000	X.MAX=5000	Y.MIN=-2	Y.MAX=5
 
 ############################
 ### Section 2: Materials ###
@@ -53,8 +58,8 @@ electr  name=cathode	x.min=4000	length=500	y.min=0.00	y.max=0.00
 ###########################
 
 #Now we save this structure as a .str file and plot it
-save outf=Full_sensor_basic.str
-tonyplot Full_sensor_basic.str
+save outf=full_sensor_basic.str
+tonyplot full_sensor_basic.str
 
 #But this plot doesn't tell us anything we didn't enter,
 #so we tell ATLAS which models to apply
@@ -77,23 +82,21 @@ method gummel newton
 solve  init
 
 #Log the tests
-log outf=Full_sensor.log
+log outf=full_sensor.log
 
 #And we tell it what values to solve each model for within the mesh
 output con.band val.band u.srh u.aug flowlines qfn qfp
 
 #Now we re-save our structure file with all of these solutions in it
-save outf=Full_sensor-0uA.str
-tonyplot Full_sensor-0uA.str -set band_structure.set
+save outf=full_sensor-0uA.str
+tonyplot full_sensor-0uA.str -set band_structure.set
 
 solve	init
 
 #We run a 400uA current throught he electrodes and see what happens
-solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=Full_sensor-Vsweep.str master
+solve	VCATHODE=0 VSTEP=1 IFINAL=5 NAME=cathode outf=full_sensor-Vsweep.str master
 
-tonyplot Full_sensor-Vsweep.str
-tonyplot Full_sensor.log
+tonyplot full_sensor-Vsweep.str
+tonyplot full_sensor.log
 
 quit
-
-
