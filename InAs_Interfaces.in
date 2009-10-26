@@ -37,11 +37,11 @@ electr  name=cathode	x.min=0.9	x.max=1.0	y.min=-0.01	y.max=0.00
 
 #Gaussian doping to simulate accumulation region near InAs surface
 # (dir=y replaces the x.left and x.right parameters)
-doping gaus peak=0.005.0 char=0.0000001 conc=2e18 n.type dir=y
+doping gaus peak=0.0050 char=0.0000001 conc=2e18 n.type dir=y
 
 #Save the basic design
-save outf=full_sensor_structure.str
-# tonyplot full_sensor_structure.str
+save outf=InAs_interfaces_structure.str
+# tonyplot InAs_interfaces_structure.str
 
 ###########################
 ### Section 3: Modeling ###
@@ -83,20 +83,20 @@ method gummel newton
 output con.band val.band u.srh u.aug flowlines qfn qfp
 
 #Log the tests
-log outf=full_sensor.log
+log outf=InAs_interfaces.log
 
 #And then we solve for the initial conditions
 solve  init
 
 #Now we re-save our structure file with all of these solutions in it
-save outf=full_sensor.str
-tonyplot full_sensor.str -set band_structure.set
+save outf=InAs_interfaces.str
+tonyplot InAs_interfaces.str -set band_structure.set
 
 
 #We run a 400uA current throught he electrodes and see what happens
-solve	VANODE=0 VSTEP=1 IFINAL=5 NAME=anode outf=full_sensor-vsweep.str master
+solve	VANODE=0 VSTEP=1 IFINAL=5 NAME=anode outf=InAs_interfaces-vsweep.str master
 
-tonyplot full_sensor-vsweep.str
-tonyplot full_sensor.log
+tonyplot InAs_interfaces-vsweep.str
+tonyplot InAs_interfaces.log
 
 quit
